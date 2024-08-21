@@ -38,15 +38,5 @@ public static class TrackEndpoints
 
             return Results.Ok(track);
         });
-
-        endpoint.MapPost("/", async (MusicContext context, [FromBody]TrackDTO track) =>
-        {
-            context.Add(new Track()
-            {
-                Title = track.Title,
-                DurationInSeconds = track.DurationInSeconds
-            });
-            await context.SaveChangesAsync();
-        });
     }
 }

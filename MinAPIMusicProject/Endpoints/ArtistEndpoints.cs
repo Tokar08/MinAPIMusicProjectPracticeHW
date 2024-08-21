@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using MinAPIMusicProject.Data;
 using MinAPIMusicProject.DTOs;
-using MinAPIMusicProject.Models;
+using MinAPIMusicProject.Interfaces;
 
 namespace MinAPIMusicProject.Endpoints;
 
@@ -12,30 +12,81 @@ public static class ArtistEndpoints
     {
         var endpoint = app.MapGroup("/api/artists");
 
-        endpoint.MapPost("/", async (MusicContext context, ArtistDTO artist) =>
+        endpoint.MapPost("/", async (
+            IArtistService service,
+            ArtistDTO artist,
+            CancellationToken cancellationToken = default) =>
         {
             // validation
-            var artistFromDb = context.Add(new Artist()
-            {
-                Name = artist.Name,
-            });
-            await context.SaveChangesAsync();
+            var artistFromDb = await service.AddArtist(artist, cancellationToken);
 
-            return Results.Created($"/api/artists/{artistFromDb.Entity.Id}", artistFromDb.Entity.Id);
+            return Results.Created($"c", artistFromDb.Id);
         });
 
-        endpoint.MapGet("/", async (MusicContext context,
-            [FromQuery]int page = 0, 
-            [FromQuery]int size = 10, 
-            [FromQuery]string? q = null) =>
+        endpoint.MapGet("/", async (
+            IArtistService service,
+            [FromQuery] int page = 0,
+            [FromQuery] int size = 10,
+            [FromQuery] string? q = null,
+            CancellationToken cancellationToken = default) =>
         {
-            var artists = q == null ? context.Artists : context.Artists.Where(x => x.Name.Contains(q));
-            var result = await artists.Skip(page * size)
-                .Take(size)
-                .Select(x => new ArtistDTO() { Name = x.Name })
-                .ToListAsync();
-                
+            var result = await service.GetArtists(page, size, q, cancellationToken);
+
             return Results.Ok(result);
+        });
+        
+        endpoint.MapDelete("{id}", async (
+            IArtistService service, 
+            [FromRoute]int id,
+            CancellationToken cancellationToken = default) =>
+        {
+            try
+            {
+                await service.DeleteArtist(id, cancellationToken);
+
+                return Results.Ok();
+            }
+            catch (ArgumentNullException)
+            {
+                return Results.NotFound();
+            }
+            catch (Exception ex) 
+            {
+                return Results.BadRequest(ex.Message);
+            }
+        });
+
+        endpoint.MapPut("{id}", async (
+            IArtistService service,
+            [FromRoute] int id,
+            [FromBody] ArtistDTO artist,
+            CancellationToken cancellationToken = default) =>
+        {
+            artist.Id = id;
+            var artistFromDb = await service.UpdateArtist(artist, cancellationToken);
+
+            return Results.Ok(artistFromDb);
+        });
+        
+        endpoint.MapPost("{artistId}/tracks", async (
+            IArtistService service,
+            [FromRoute]int artistId,
+            [FromBody]AddTrackDTO track,
+            CancellationToken cancellationToken = default) =>
+        {
+            var trackFromDb = await service.AddTrack(artistId, track, cancellationToken);
+
+            return Results.Created($"/api/tracks/{trackFromDb.Id}", trackFromDb.Id);
+        });
+        
+        endpoint.MapGet("{artistId}/tracks", async (
+            MusicContext context,
+            IMapper mapper,
+            [FromRoute]int artistId) =>
+        {
+            var artist = await context.Artists.FindAsync(artistId);
+
+            return Results.Ok(mapper.Map<IEnumerable<TrackDTO>>(artist.Tracks));
         });
     }
 }
