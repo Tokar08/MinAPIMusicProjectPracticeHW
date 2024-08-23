@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinAPIMusicProject.Data;
 using MinAPIMusicProject.Endpoints;
@@ -15,6 +14,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddTransient<IArtistService, ArtistService>();
 builder.Services.AddTransient<IGenreService, GenreService>();
+builder.Services.AddTransient<IUserService, UserService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -32,5 +32,6 @@ app.UseHttpsRedirection();
 app.AddTrackEndpoints();
 app.AddGenreEndpoints();
 app.AddArtistEndpoints();
+app.AddUserEndpoints();
 
 app.Run();

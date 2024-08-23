@@ -6,10 +6,10 @@ namespace MinAPIMusicProject.Endpoints;
 
 public static class GenreEndpoints
 {
-      public static void AddGenreEndpoints(this IEndpointRouteBuilder app)
+    public static void AddGenreEndpoints(this IEndpointRouteBuilder app)
     {
         var endpoint = app.MapGroup("/api/genres");
-        
+
         endpoint.MapGet("/", async (
             IGenreService service,
             [FromQuery] int page = 0,
@@ -20,7 +20,7 @@ public static class GenreEndpoints
             var genres = await service.GetGenres(page, size, q, cancellationToken);
             return Results.Ok(genres);
         });
-        
+
         endpoint.MapGet("/search", async (
             IGenreService service,
             [FromQuery] string name,
@@ -36,7 +36,7 @@ public static class GenreEndpoints
                 return Results.BadRequest(ex.Message);
             }
         });
-        
+
         endpoint.MapPost("/", async (
             IGenreService service,
             GenreDTO genre,
@@ -52,7 +52,7 @@ public static class GenreEndpoints
                 return Results.BadRequest(ex.Message);
             }
         });
-        
+
         endpoint.MapDelete("{id}", async (
             IGenreService service,
             [FromRoute] int id,

@@ -17,26 +17,24 @@ public class GenreService : IGenreService
         _context = context;
         _mapper = mapper;
     }
-    
+
     public async Task<GenreDTO> AddGenre(GenreDTO genre, CancellationToken cancellationToken = default)
     {
         var genreEntity = _context.Genres.Add(_mapper.Map<Genre>(genre));
         await _context.SaveChangesAsync(cancellationToken);
         return _mapper.Map<GenreDTO>(genreEntity.Entity);
     }
-    
+
     public async Task DeleteGenre(int id, CancellationToken cancellationToken = default)
     {
-        var genre = await _context.Genres.FindAsync(new object[]{id}, cancellationToken: cancellationToken);
-        if (genre == null)
-        {
-            throw new ArgumentNullException(nameof(genre), "Жанр не найден.");
-        }
+        var genre = await _context.Genres.FindAsync(new object[] { id }, cancellationToken);
+        if (genre == null) throw new ArgumentNullException(nameof(genre), "Жанр не найден.");
         _context.Genres.Remove(genre);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<GenreDTO>> GetGenres(int page, int size, string? q, CancellationToken cancellationToken = default)
+    public async Task<List<GenreDTO>> GetGenres(int page, int size, string? q,
+        CancellationToken cancellationToken = default)
     {
         var query = string.IsNullOrEmpty(q)
             ? _context.Genres
@@ -60,6 +58,4 @@ public class GenreService : IGenreService
 
         return genres.Select(g => _mapper.Map<GenreDTO>(g)).ToList();
     }
-    
-    
 }

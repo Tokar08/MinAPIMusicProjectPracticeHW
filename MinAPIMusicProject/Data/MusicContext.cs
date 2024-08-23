@@ -20,5 +20,10 @@ public class MusicContext : DbContext
         /*modelBuilder.Entity<Track>()
             .Property(x => x.Title)
             .IsRequired(false);*/
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.LikedTracks)
+            .WithMany(t => t.LikedByUsers)
+            .UsingEntity(j => j.ToTable("UserTrackLikes"));
     }
 }
